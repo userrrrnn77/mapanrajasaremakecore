@@ -3,12 +3,15 @@ import mongoose, { Document, Model } from "mongoose";
 /**
  * 🔥 TYPE DEFINITIONS
  */
-type Role =
-  | "security"
-  | "cleaning_service"
-  | "customer_service"
-  | "gardener"
-  | "street";
+export const WORK_ROLES = [
+  "security",
+  "cleaning_service",
+  "customer_service",
+  "gardener",
+  "street",
+] as const;
+
+export type WorkRole = (typeof WORK_ROLES)[number];
 
 interface ShiftTime {
   hour: number;
@@ -25,7 +28,7 @@ interface ShiftGroup {
 
 export interface IWorkLocation extends Document {
   code: string;
-  role: Role;
+  role: WorkRole;
 
   name: string;
 
@@ -76,13 +79,7 @@ const WorkLocationSchema = new mongoose.Schema<IWorkLocation>(
     role: {
       type: String,
       required: true,
-      enum: [
-        "security",
-        "cleaning_service",
-        "customer_service",
-        "gardener",
-        "street",
-      ],
+      enum: WORK_ROLES,
     },
 
     name: {

@@ -7,7 +7,7 @@ type CacheValue<T> = {
 };
 
 export interface CacheOptions {
-  ttl?: number; // seconds
+  ttl?: number;
   namespace?: string;
 }
 
@@ -16,7 +16,7 @@ const DEFAULT_TTL = 3600;
 const cache = new NodeCache({
   stdTTL: DEFAULT_TTL,
   checkperiod: 600,
-  useClones: false, // ⚠️ penting biar gak berat
+  useClones: false,
 });
 
 export class MemoryCache {
@@ -25,7 +25,6 @@ export class MemoryCache {
     return namespace ? `${namespace}:${key}` : key;
   }
 
-  // 🔥 SET (support TTL + namespace)
   static set<T>(key: string, value: T, options?: CacheOptions): void {
     const finalKey = this.buildKey(key, options?.namespace);
 
@@ -37,7 +36,6 @@ export class MemoryCache {
     cache.set(finalKey, payload, options?.ttl ?? DEFAULT_TTL);
   }
 
-  // 🔥 GET (type-safe + unwrap)
   static get<T>(key: string, options?: { namespace?: string }): T | null {
     const finalKey = this.buildKey(key, options?.namespace);
 
@@ -48,19 +46,16 @@ export class MemoryCache {
     return data.value;
   }
 
-  // 🔥 HAS
   static has(key: string, namespace?: string): boolean {
     const finalKey = this.buildKey(key, namespace);
     return cache.has(finalKey);
   }
 
-  // 🔥 DELETE
   static del(key: string, namespace?: string): void {
     const finalKey = this.buildKey(key, namespace);
     cache.del(finalKey);
   }
 
-  // 🔥 GET META (buat debugging)
   static getMeta(key: string, namespace?: string): { ageMs: number } | null {
     const finalKey = this.buildKey(key, namespace);
 
@@ -73,7 +68,6 @@ export class MemoryCache {
     };
   }
 
-  // 🔥 FLUSH (dangerous)
   static clear(namespace?: string) {
     if (!namespace) {
       cache.flushAll();

@@ -1,17 +1,10 @@
-/**
- * Role yang tersedia dalam percakapan AI
- */
 export type MessageRole = "system" | "user" | "assistant" | "tool";
 
-/**
- * Format satu pesan dalam chat (Standard OpenAI/Groq format)
- */
 export interface ChatMessage {
   role: MessageRole;
   content: string;
   name?: string;
 
-  // 🔥 tambahan overkill
   id?: string;
   createdAt?: Date;
 
@@ -37,10 +30,7 @@ export interface ChatMessage {
 
   embedding?: number[];
 }
-/**
- * Struktur mentah response dari API AI (Groq/OpenAI)
- * Berguna kalau lu butuh data meta seperti usage/token
- */
+
 export interface AIResponse {
   id: string;
   object: string;
@@ -60,10 +50,7 @@ export interface AIResponse {
     total_tokens: number;
   };
 }
-/**
- * Response yang sudah dibersihkan (Unified)
- * Ini yang bakal dikirim ke Frontend atau disimpan ke DB
- */
+
 export interface UnifiedResponse {
   success: boolean;
 
@@ -96,7 +83,6 @@ export interface ChatHistory {
 
   title?: string;
 
-  // 🔥 config AI per thread
   config?: {
     model?: string;
     temperature?: number;
@@ -104,19 +90,16 @@ export interface ChatHistory {
     systemPrompt?: string;
   };
 
-  // 🔥 memory system
   memory?: {
     summary?: string;
     lastUpdated?: Date;
   };
 
-  // 🔥 statistik
   stats?: {
     totalMessages: number;
     totalTokens: number;
   };
 
-  // ⚠️ OPTIONAL (deprecated nanti)
   messages?: ChatMessage[];
 
   createdAt: Date;
@@ -151,7 +134,7 @@ export interface MemoryDocument {
   content: string;
   embedding: number[];
 
-  importance: number; // 1 - 10
+  importance: number;
 
   createdAt: Date;
 }

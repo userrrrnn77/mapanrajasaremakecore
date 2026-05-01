@@ -8,7 +8,6 @@ export class NotificationService {
     body: string,
     data?: any,
   ) {
-    // 1. simpan dulu ke DB
     const notif = await Notification.create({
       user: userId,
       title,
@@ -17,7 +16,6 @@ export class NotificationService {
     });
 
     try {
-      // 2. kirim ke pusher
       await beamsClient.publishToUsers([userId], {
         web: {
           notification: {
@@ -27,7 +25,6 @@ export class NotificationService {
         },
       });
 
-      // 3. update status
       notif.status = "sent";
       notif.sentAt = new Date();
       await notif.save();

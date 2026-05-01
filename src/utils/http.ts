@@ -15,10 +15,9 @@ export const groqFetch = async (endpoint: string, options: RequestInit) => {
   if (!response.ok) {
     const errorData: any = await response.json().catch(() => ({}));
     throw new Error(
-      errorData.error?.message || `HTTP Error: ${response.status}`, // 'errorData' is of type 'unknown'.
+      errorData.error?.message || `HTTP Error: ${response.status}`,
     );
   }
 
-  return response.json()
-
+  return response.json();
 };

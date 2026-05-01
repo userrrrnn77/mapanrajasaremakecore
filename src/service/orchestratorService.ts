@@ -1,5 +1,5 @@
 import { MessageModel } from "../models/MessageModel.js";
-import { ChatHistoryModel } from "../models/ChatHistory.js";
+import { ChatHistoryModel } from "../models/ChatHistoryModel.js";
 import { GroqService } from "./groqService.js";
 import type { ChatRequest, ChatMessage } from "../types/aiTypes.js";
 
@@ -7,7 +7,6 @@ export class OrchestratorService {
   private static SYSTEM_PROMPT =
     "Lu adalah Cleaning Service senior Gedung, santai ala jaksel, edukatif, humoris, langsung ke inti.";
 
-  // 🔥 ambil last message (short memory)
   private static async getRecentMessages(
     threadId: string,
   ): Promise<ChatMessage[]> {
@@ -22,7 +21,6 @@ export class OrchestratorService {
     }));
   }
 
-  // 🔥 build context
   private static async buildContext(
     input: ChatRequest,
   ): Promise<ChatMessage[]> {
@@ -41,7 +39,6 @@ export class OrchestratorService {
     ];
   }
 
-  // 🚀 MAIN
   static async startDiscussion(input: ChatRequest) {
     const start = Date.now();
 
@@ -57,10 +54,8 @@ export class OrchestratorService {
       { upsert: true },
     );
 
-    // 2. build context
     const context = await this.buildContext(input);
 
-    // 3. call AI
     const ai = await GroqService.chat(context);
 
     if (!ai.success) {
@@ -69,7 +64,6 @@ export class OrchestratorService {
 
     const latency = Date.now() - start;
 
-    // 4. simpan USER message
     await MessageModel.create({
       threadId: input.threadId,
       userId: input.userId,
@@ -77,7 +71,6 @@ export class OrchestratorService {
       content: input.message,
     });
 
-    // 5. simpan AI message
     await MessageModel.create({
       threadId: input.threadId,
       userId: input.userId,
@@ -93,7 +86,6 @@ export class OrchestratorService {
       },
     });
 
-    // 6. update stats
     await ChatHistoryModel.updateOne(
       { threadId: input.threadId },
       {

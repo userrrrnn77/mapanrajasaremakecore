@@ -4,6 +4,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { rateLimit as rateLimitMbut } from "express-rate-limit";
 import User, { IUser } from "../models/UserModel.js";
 import { logger } from "../utils/logger.js";
+import cloudinary from "../config/cloudinary.js";
 
 const rateLimit: any = rateLimitMbut;
 
@@ -210,4 +211,8 @@ export const checkInValidator = (
   };
 
   next();
+};
+
+export const deleteFromCloudinary = async (publicId: string) => {
+  return await cloudinary.uploader.destroy(publicId);
 };
