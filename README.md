@@ -20,15 +20,66 @@ Backend REST API untuk sistem absensi, aktivitas, notifikasi, dan AI assistant. 
 # 📁 Project Structure
 
 ```
-src/
-├── controllers/       # Logic utama endpoint
-├── routes/            # Routing layer (Express)
-├── models/            # Mongoose schemas
-├── middlewares/       # Auth, rate limit, validator
-├── utils/             # Helper (time, geo, logger)
-├── service/           # Business logic (AI, notif, dll)
-├── config/            # Config (DB, Cloudinary)
-└── types/             # Type definitions
+├── api
+│   └── index.ts
+├── bun.lock
+├── package.json
+├── README.md
+├── src
+│   ├── app.ts
+│   ├── config
+│   │   ├── cloudinary.ts
+│   │   ├── db.ts
+│   │   ├── groq.ts
+│   │   └── pusher.ts
+│   ├── controllers
+│   │   ├── activityController.ts
+│   │   ├── appController.ts
+│   │   ├── attendanceController.ts
+│   │   ├── authController.ts
+│   │   ├── chatContoller.ts
+│   │   ├── cloudinarySigantureController.ts
+│   │   ├── notificationController.ts
+│   │   └── userController.ts
+│   ├── middlewares
+│   │   └── authMiddleware.ts
+│   ├── models
+│   │   ├── ActivityModel.ts
+│   │   ├── AttendanceModel.ts
+│   │   ├── ChatHistoryModel.ts
+│   │   ├── MemoryModel.ts
+│   │   ├── MessageModel.ts
+│   │   ├── NotificationModel.ts
+│   │   ├── ReportModel.ts
+│   │   ├── UserModel.ts
+│   │   └── WorkLocationModel.ts
+│   ├── routes
+│   │   ├── activityRoutes.ts
+│   │   ├── attendanceRoutes.ts
+│   │   ├── authRoutes.ts
+│   │   ├── chatRoutes.ts
+│   │   ├── clodinarySignatureRoutes.ts
+│   │   ├── notificationRoutes.ts
+│   │   ├── _routes.ts
+│   │   └── userRoutes.ts
+│   ├── service
+│   │   ├── cache
+│   │   │   └── memoryCache.ts
+│   │   ├── groqService.ts
+│   │   ├── notificationService.ts
+│   │   └── orchestratorService.ts
+│   ├── types
+│   │   ├── aiTypes.ts
+│   │   └── env.d.ts
+│   └── utils
+│       ├── geoHelper.ts
+│       ├── http.ts
+│       ├── logger.ts
+│       ├── penaltyHelper.ts
+│       └── timeHelper.ts
+├── testing.ts
+├── tsconfig.json
+└── vercel.json
 ```
 
 ---
