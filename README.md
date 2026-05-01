@@ -123,83 +123,6 @@ Middleware:
 
 ---
 
-## 🔑 Auth
-
-```
-POST   /api/auth/register
-POST   /api/auth/login
-POST   /api/auth/logout
-PATCH  /api/auth/me
-```
-
----
-
-## 👤 Users
-
-```
-GET    /api/users/dashboard
-POST   /api/users            (admin)
-GET    /api/users            (admin)
-GET    /api/users/:id        (admin)
-PATCH  /api/users/:id/status (admin)
-DELETE /api/users/:id        (admin)
-```
-
----
-
-## 📍 Attendance
-
-```
-POST   /api/attendance/check-in
-POST   /api/attendance/check-out
-POST   /api/attendance/sick
-
-GET    /api/attendance/me
-GET    /api/attendance       (admin)
-```
-
----
-
-## 📸 Activity
-
-```
-POST   /api/activity
-GET    /api/activity/me
-GET    /api/activity         (admin)
-```
-
----
-
-## 🔔 Notification
-
-```
-GET    /api/notifications/me
-PATCH  /api/notifications/me/read-all
-PATCH  /api/notifications/:id/read
-DELETE /api/notifications/:id
-POST   /api/notifications/send (admin)
-```
-
----
-
-## 🤖 AI
-
-```
-GET    /api/chat/status
-POST   /api/chat/ask
-POST   /api/chat/ask/private
-```
-
----
-
-## ☁️ Upload
-
-```
-GET    /api/upload/signature
-```
-
----
-
 # 🧠 Key Concepts
 
 ## 📍 Geo Validation
@@ -315,3 +238,5 @@ Fokus utama:
 ---
 
 # 💥 License
+
+* INTERNAL

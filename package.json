@@ -51,5 +51,5 @@
     "vercel-build": "tsc"
   },
   "author": "Rendy Agus Saputra",
-  "license": "MIT"
+  "license": "INTERNAL"
 }
