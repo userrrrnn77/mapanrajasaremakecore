@@ -1,5 +1,8 @@
 import mongoose, { Document, Model } from "mongoose";
 
+/**
+ * 🔥 CONST
+ */
 export const ATTENDANCE_TYPE = ["masuk", "keluar", "sakit"] as const;
 export const ATTENDANCE_STATUS = [
   "tepat_waktu",
@@ -15,6 +18,9 @@ type AttendanceType = (typeof ATTENDANCE_TYPE)[number];
 type AttendanceStatus = (typeof ATTENDANCE_STATUS)[number];
 type ShiftType = (typeof SHIFTS)[number];
 
+/**
+ * 🔥 INTERFACE
+ */
 export interface IAttendance extends Document {
   user: mongoose.Types.ObjectId;
 
@@ -23,12 +29,12 @@ export interface IAttendance extends Document {
   type: AttendanceType;
   status: AttendanceStatus;
 
+  shift?: ShiftType;
+
   checkIn?: Date;
   checkOut?: Date;
 
   isIncomplete: boolean;
-
-  shift?: ShiftType;
 
   workLocation?: mongoose.Types.ObjectId;
 
@@ -53,7 +59,7 @@ export interface IAttendance extends Document {
 
   location: {
     type: "Point";
-    coordinates: [number, number]; 
+    coordinates: [number, number];
   };
 
   distanceFromCenter?: number;
@@ -67,12 +73,19 @@ export interface IAttendance extends Document {
 
   kategori: string;
 
-  backupUser?: mongoose.Types.ObjectId | null;
+  /**
+   * 🔥 BACKUP SYSTEM
+   */
+  isBackup: boolean;
+  backupFor?: mongoose.Types.ObjectId | null;
 
   createdAt?: Date;
   updatedAt?: Date;
 }
 
+/**
+ * 🔥 SCHEMA
+ */
 const AttendanceSchema = new mongoose.Schema<IAttendance>(
   {
     user: {
@@ -101,6 +114,15 @@ const AttendanceSchema = new mongoose.Schema<IAttendance>(
       index: true,
     },
 
+    shift: {
+      type: String,
+      enum: SHIFTS,
+      required: function (this: IAttendance) {
+        return this.type !== "sakit";
+      },
+      index: true,
+    },
+
     checkIn: Date,
     checkOut: Date,
 
@@ -108,14 +130,6 @@ const AttendanceSchema = new mongoose.Schema<IAttendance>(
       type: Boolean,
       default: false,
       index: true,
-    },
-
-    shift: {
-      type: String,
-      enum: SHIFTS,
-      required: function (this: IAttendance) {
-        return this.type !== "sakit";
-      },
     },
 
     workLocation: {
@@ -130,17 +144,14 @@ const AttendanceSchema = new mongoose.Schema<IAttendance>(
     locationSnapshot: {
       name: String,
       radiusMeter: Number,
-
       center: {
         lat: Number,
         lng: Number,
       },
-
       shiftType: {
         type: String,
         enum: SHIFTS,
       },
-
       shiftStartHour: Number,
       shiftStartMinute: Number,
     },
@@ -173,13 +184,11 @@ const AttendanceSchema = new mongoose.Schema<IAttendance>(
           validator: (v: number[]) =>
             Array.isArray(v) &&
             v.length === 2 &&
-            typeof v[0] === "number" &&
-            typeof v[1] === "number" &&
             v[0] >= -180 &&
             v[0] <= 180 &&
             v[1] >= -90 &&
             v[1] <= 90,
-          message: "Coordinates harus [lng(-180..180), lat(-90..90)]",
+          message: "Coordinates harus [lng, lat]",
         },
       },
       required: true,
@@ -218,10 +227,20 @@ const AttendanceSchema = new mongoose.Schema<IAttendance>(
       default: "ABSENSI",
     },
 
-    backupUser: {
+    /**
+     * 🔥 BACKUP
+     */
+    isBackup: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    backupFor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
+      index: true,
     },
   },
   {
@@ -229,24 +248,40 @@ const AttendanceSchema = new mongoose.Schema<IAttendance>(
   },
 );
 
+/**
+ * 🔥 INDEX (UPDATED)
+ */
+
+// ✅ multi shift per hari
 AttendanceSchema.index(
-  { user: 1, attendanceDayKey: 1, type: 1 },
+  { user: 1, attendanceDayKey: 1, type: 1, shift: 1 },
   { unique: true },
 );
 
+// ✅ 1 active session per shift
 AttendanceSchema.index(
-  { user: 1, isIncomplete: 1 },
+  { user: 1, shift: 1, isIncomplete: 1 },
   {
     unique: true,
     partialFilterExpression: { isIncomplete: true },
   },
 );
 
-AttendanceSchema.index({ createdAt: -1 });
-AttendanceSchema.index({ user: 1, createdAt: -1 });
+// ✅ prevent double backup
+AttendanceSchema.index(
+  { backupFor: 1, attendanceDayKey: 1, shift: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { isBackup: true },
+  },
+);
 
 AttendanceSchema.index({ location: "2dsphere" });
+AttendanceSchema.index({ createdAt: -1 });
 
+/**
+ * 🔥 STATIC
+ */
 export interface AttendanceModel extends Model<IAttendance> {
   findToday(userId: string, dayKey: string): Promise<IAttendance[]>;
 }
@@ -258,23 +293,34 @@ AttendanceSchema.statics.findToday = function (userId: string, dayKey: string) {
   });
 };
 
+/**
+ * 🔥 PRE SAVE LOGIC
+ */
 AttendanceSchema.pre("save", function () {
+  // 🔥 masuk
   if (this.type === "masuk") {
     this.isIncomplete = !this.checkOut;
+
+    if (!this.checkIn) {
+      throw new Error("CheckIn wajib untuk type masuk");
+    }
   }
 
+  // 🔥 keluar
   if (this.type === "keluar") {
     this.isIncomplete = false;
 
     if (!this.checkOut) {
-      throw new Error("CheckOut wajib ada untuk type keluar");
+      throw new Error("CheckOut wajib ada");
     }
   }
 
-  if (this.type === "masuk" && !this.checkIn) {
-    throw new Error("CheckIn wajib untuk type masuk");
+  // 🔥 validasi waktu
+  if (this.checkIn && this.checkOut && this.checkOut < this.checkIn) {
+    throw new Error("CheckOut tidak boleh sebelum CheckIn");
   }
 
+  // 🔥 auto late
   if (this.checkIn && this.locationSnapshot?.shiftStartHour !== undefined) {
     const shiftStart = new Date(this.checkIn);
     shiftStart.setHours(
@@ -291,14 +337,11 @@ AttendanceSchema.pre("save", function () {
       this.status = "terlambat";
     }
   }
-
-  if (this.checkIn && this.checkOut) {
-    if (this.checkOut < this.checkIn) {
-      throw new Error("CheckOut tidak boleh sebelum CheckIn");
-    }
-  }
 });
 
+/**
+ * 🔥 MODEL EXPORT
+ */
 const Attendance =
   (mongoose.models.Attendance as AttendanceModel) ||
   mongoose.model<IAttendance, AttendanceModel>("Attendance", AttendanceSchema);

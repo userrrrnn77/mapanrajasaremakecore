@@ -5,7 +5,7 @@ import type { AuthRequest } from "../middlewares/authMiddleware.js";
 
 import dayjs from "dayjs";
 
-import Attendance from "../models/AttendanceModel.js";
+import Attendance, { IAttendance } from "../models/AttendanceModel.js";
 import User from "../models/UserModel.js";
 import WorkLocation, {
   type IWorkLocation,
@@ -25,7 +25,8 @@ import {
  */
 export const checkIn = async (req: AuthRequest, res: Response) => {
   try {
-    const { lat, lng, shift, note, isOvertime, photo } = req.body;
+    const { lat, lng, shift, note, isOvertime, photo, backupForUserId } =
+      req.body;
 
     const nowJakarta = getNowJakarta();
 
@@ -51,25 +52,46 @@ export const checkIn = async (req: AuthRequest, res: Response) => {
     }
 
     /**
-     * 🔥 SESSION GUARD
+     * 🔥 HANDLE BACKUP TARGET
      */
-    const openSession = await Attendance.findOne({
-      user: user._id,
-      isIncomplete: true,
-    });
+    let targetUserId = user._id;
 
-    if (openSession) {
-      const diff = nowJakarta.diff(dayjs(openSession.checkIn), "hour");
+    if (backupForUserId) {
+      const targetUser = await User.findById(backupForUserId);
 
-      if (diff < 18) {
-        return res.status(409).json({
+      if (!targetUser) {
+        return res.status(404).json({
           success: false,
-          message: "Masih ada sesi aktif",
+          message: "User yang mau di-backup tidak ditemukan",
         });
       }
 
-      await Attendance.findByIdAndUpdate(openSession._id, {
-        isIncomplete: false,
+      // ❗ hanya boleh backup user dengan role sama
+      if (targetUser.role !== user.role) {
+        return res.status(403).json({
+          success: false,
+          message: "Tidak bisa backup beda role",
+        });
+      }
+
+      targetUserId = targetUser._id;
+    }
+
+    /**
+     * 🔥 CEK DUPLIKASI (IMPORTANT)
+     */
+    const todayKey = nowJakarta.format("YYYY-MM-DD");
+
+    const existing = await Attendance.findOne({
+      attendanceDayKey: todayKey,
+      shift,
+      $or: [{ user: targetUserId }, { backupUser: targetUserId }],
+    });
+
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: "Absensi untuk shift ini sudah ada",
       });
     }
 
@@ -134,7 +156,9 @@ export const checkIn = async (req: AuthRequest, res: Response) => {
      * 🔥 CREATE
      */
     const attendance = await Attendance.create({
-      user: user._id,
+      user: user._id, // yang ngejalanin
+      backupUser: backupForUserId ? targetUserId : null,
+
       attendanceDayKey,
       type: "masuk",
       status: lateMinutes > 0 ? "terlambat" : "tepat_waktu",
@@ -149,7 +173,7 @@ export const checkIn = async (req: AuthRequest, res: Response) => {
         center: selectedLoc.center,
       },
 
-      photo, // 🔥 dari FE langsung
+      photo,
 
       location: {
         type: "Point",
@@ -161,7 +185,7 @@ export const checkIn = async (req: AuthRequest, res: Response) => {
       penalty,
       isOvertime: isOvertime === true || isOvertime === "true",
       note,
-    });
+    } as Partial<IAttendance>);
 
     return res.status(201).json({
       success: true,
@@ -194,8 +218,8 @@ export const checkOut = async (req: AuthRequest, res: Response) => {
     }
 
     const record = await Attendance.findOne({
-      user: req.user!._id,
       isIncomplete: true,
+      $or: [{ user: req.user!._id }, { backupUser: req.user!._id }],
     }).populate<{
       workLocation: IWorkLocation;
     }>("workLocation");
@@ -291,6 +315,8 @@ export const checkOut = async (req: AuthRequest, res: Response) => {
 interface AttendanceQuery {
   attendanceDayKey?: string | { $gte: string; $lte: string };
   user?: string;
+  backupUser?: string;
+  $or?: AttendanceQuery[];
 }
 
 interface SickBody {
@@ -436,7 +462,10 @@ export const getMyAttendance = async (req: AuthRequest, res: Response) => {
     };
 
     const query: AttendanceQuery = {
-      user: req.user!._id.toString(),
+      $or: [
+        { user: req.user!._id.toString() },
+        { backupUser: req.user!._id.toString() },
+      ],
     };
 
     if (startDate && endDate) {

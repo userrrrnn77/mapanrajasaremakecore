@@ -7,55 +7,17 @@ import {
   getMyAttendance,
   sickAttendance,
 } from "../controllers/attendanceController.js";
-
 import {
   authMiddleware,
   attendanceLimiter,
-  checkInValidator,
   roleMiddleware,
 } from "../middlewares/authMiddleware.js";
-
-import type { Response, NextFunction } from "express";
-import { AuthRequest } from "../middlewares/authMiddleware.js";
-
-import { logger } from "../utils/logger.js";
+import {
+  checkInValidator,
+  checkOutValidator,
+} from "../middlewares/attendanceMiddleware.js";
 
 const router = Router();
-
-/**
- * 🔥 EXTRA VALIDATOR (OPSIONAL HARDENING)
- */
-const checkOutValidator = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction,
-) => {
-  const { lat, lng } = req.body;
-
-  if (!lat || !lng) {
-    logger.warn("Checkout gagal: lat/lng kosong");
-    return res.status(400).json({
-      success: false,
-      message: "Koordinat wajib diisi",
-    });
-  }
-
-  const latitude = Number(lat);
-  const longitude = Number(lng);
-
-  if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
-    return res.status(400).json({
-      success: false,
-      message: "Koordinat tidak valid",
-    });
-  }
-
-  next();
-};
-
-/**
- * 🔥 ROUTES
- */
 
 /**
  * 🔥 (OPSIONAL) ADMIN ACCESS – GET ALL ATTENDANCE
@@ -82,6 +44,14 @@ router.post(
   attendanceLimiter,
   checkInValidator,
   checkIn,
+);
+
+router.post(
+  "/check-in/backup",
+  authMiddleware,
+  attendanceLimiter,
+  checkInValidator,
+  checkIn, // reuse controller
 );
 
 /**

@@ -171,47 +171,47 @@ export const attendanceLimiter = rateLimit({
 /**
  * 📍 VALIDATOR KOORDINAT (CHECK-IN)
  */
-export const checkInValidator = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction,
-) => {
-  const { lat, lng } = req.body;
+// export const checkInValidator = (
+//   req: AuthRequest,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   const { lat, lng } = req.body;
 
-  if (!lat || !lng) {
-    logger.warn("Lat/Lng tidak ada");
-    return res.status(400).json({
-      success: false,
-      message: "Koordinat wajib diisi",
-    });
-  }
+//   if (!lat || !lng) {
+//     logger.warn("Lat/Lng tidak ada");
+//     return res.status(400).json({
+//       success: false,
+//       message: "Koordinat wajib diisi",
+//     });
+//   }
 
-  const latitude = parseFloat(lat);
-  const longitude = parseFloat(lng);
+//   const latitude = parseFloat(lat);
+//   const longitude = parseFloat(lng);
 
-  if (isNaN(latitude) || isNaN(longitude)) {
-    logger.warn({ lat, lng }, "Koordinat bukan angka");
-    return res.status(400).json({
-      success: false,
-      message: "Koordinat harus angka",
-    });
-  }
+//   if (isNaN(latitude) || isNaN(longitude)) {
+//     logger.warn({ lat, lng }, "Koordinat bukan angka");
+//     return res.status(400).json({
+//       success: false,
+//       message: "Koordinat harus angka",
+//     });
+//   }
 
-  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-    logger.warn({ latitude, longitude }, "Koordinat di luar range");
-    return res.status(400).json({
-      success: false,
-      message: "Koordinat tidak valid",
-    });
-  }
+//   if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+//     logger.warn({ latitude, longitude }, "Koordinat di luar range");
+//     return res.status(400).json({
+//       success: false,
+//       message: "Koordinat tidak valid",
+//     });
+//   }
 
-  req.validatedLocation = {
-    lat: latitude,
-    lng: longitude,
-  };
+//   req.validatedLocation = {
+//     lat: latitude,
+//     lng: longitude,
+//   };
 
-  next();
-};
+//   next();
+// };
 
 export const deleteFromCloudinary = async (publicId: string) => {
   return await cloudinary.uploader.destroy(publicId);
