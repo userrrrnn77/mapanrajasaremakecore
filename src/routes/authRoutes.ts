@@ -21,7 +21,7 @@ router.post("/register", register);
 router.post("/login", loginLimiter, login);
 
 
-router.post("/logout", authMiddleware, logout);
+router.delete("/logout", authMiddleware, logout);
 
 router.patch("/me", authMiddleware, updateMe);
 
