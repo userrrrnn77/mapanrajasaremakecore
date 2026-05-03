@@ -5,6 +5,9 @@ import {
   updateUserStatus,
   getUserById,
   getDashboardStats,
+  getMyTimeline,
+  updateUserAssignment,
+  verifyUser,
   deleteUser,
 } from "../controllers/userController.js";
 
@@ -114,16 +117,18 @@ router.get("/dashboard", authMiddleware, getDashboardStats);
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware(["admin", "super_admin"]),
+  roleMiddleware(["admin"]),
   adminLimiter,
   validateCreateUser,
   createUser,
 );
 
+router.get("/my-timeline", authMiddleware, getMyTimeline);
+
 router.get(
   "/",
   authMiddleware,
-  roleMiddleware(["admin", "super_admin"]),
+  roleMiddleware(["admin"]),
   adminLimiter,
   getAllUsers,
 );
@@ -131,7 +136,7 @@ router.get(
 router.get(
   "/:id",
   authMiddleware,
-  roleMiddleware(["admin", "super_admin"]),
+  roleMiddleware(["admin"]),
   validateObjectId,
   getUserById,
 );
@@ -139,7 +144,7 @@ router.get(
 router.patch(
   "/:userId/status",
   authMiddleware,
-  roleMiddleware(["admin", "super_admin"]),
+  roleMiddleware(["admin"]),
   adminLimiter,
   validateObjectId,
   validateStatus,
@@ -149,10 +154,24 @@ router.patch(
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware(["admin", "super_admin"]),
+  roleMiddleware(["admin"]),
   adminLimiter,
   validateObjectId,
   deleteUser,
+);
+
+router.patch(
+  "/verify/:userId",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  verifyUser,
+);
+
+router.patch(
+  "/:id/role",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  updateUserAssignment,
 );
 
 export default router;

@@ -115,7 +115,7 @@ router.get("/", getAllWorkLocation);
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware(["admin", "owner"]),
+  roleMiddleware(["admin"]),
   validateCreateLocation,
   createWorkLocation,
 );
@@ -128,7 +128,7 @@ router.post(
 router.patch(
   "/:id",
   authMiddleware,
-  roleMiddleware(["admin", "owner"]),
+  roleMiddleware(["admin"]),
   validateObjectIdParam,
   validateUpdateLocation,
   updateWorkLocation,
@@ -142,7 +142,7 @@ router.patch(
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware(["admin", "owner"]),
+  roleMiddleware(["admin"]),
   validateObjectIdParam,
   deleteLocation,
 );

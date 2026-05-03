@@ -10,8 +10,8 @@ import {
 import {
   authMiddleware,
   roleMiddleware,
-  checkInValidator, 
 } from "../middlewares/authMiddleware.js";
+import { checkInValidator } from "../middlewares/attendanceMiddleware.js";
 
 const router = Router();
 
@@ -70,7 +70,7 @@ router.get("/me", authMiddleware, getMyHistory);
 router.get(
   "/",
   authMiddleware,
-  roleMiddleware(["admin", "owner"]),
+  roleMiddleware(["admin"]),
   getAllActivities,
 );
 
