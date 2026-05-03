@@ -7,6 +7,7 @@ import chatRoutes from "./chatRoutes.js";
 import cloudinaryRoutes from "./clodinarySignatureRoutes.js";
 import notificationRoutes from "./notificationRoutes.js";
 import userRoutes from "./userRoutes.js";
+import workLocationRoutes from './workLocationRoutes.js'
 
 import { getAppVersion } from "../controllers/appController.js";
 
@@ -19,6 +20,7 @@ router.use("/chat", chatRoutes);
 router.use("/cloudinary", cloudinaryRoutes);
 router.use("/notification", notificationRoutes);
 router.use("/user", userRoutes);
+router.use("/worklocation", workLocationRoutes);
 router.use("/version", getAppVersion);
 
 export default router;
