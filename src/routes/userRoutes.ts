@@ -9,6 +9,7 @@ import {
   updateUserAssignment,
   verifyUser,
   deleteUser,
+  getMyProfile,
 } from "../controllers/userController.js";
 
 import {
@@ -122,6 +123,8 @@ router.post(
   validateCreateUser,
   createUser,
 );
+
+router.get("/me", authMiddleware, getMyProfile);
 
 router.get("/my-timeline", authMiddleware, getMyTimeline);
 

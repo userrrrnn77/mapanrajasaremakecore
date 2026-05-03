@@ -610,3 +610,75 @@ export const verifyUser = async (req: AuthRequest, res: Response) => {
     });
   }
 };
+
+/**
+ * 🔥 GET MY PROFILE (Self)
+ * Route: GET /user/me
+ * Access: semua role (authMiddleware only)
+ */
+export const getMyProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?._id?.toString();
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const user = await User.findById(userId)
+      .populate(
+        "assignedWorkLocations",
+        "name code role radiusMeter center shiftConfigs isActive",
+      )
+      .select("-password")
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User tidak ditemukan",
+      });
+    }
+
+    if (user.status !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: "Akun kamu sudah dinonaktifkan",
+      });
+    }
+
+    logger.info({ userId }, "getMyProfile accessed");
+
+    return res.status(200).json({
+      success: true,
+      message: "Profil berhasil diambil",
+      data: {
+        id: user._id,
+        username: user.username,
+        fullname: user.fullname,
+        phone: user.phone,
+        role: user.role,
+        shift: user.shift,
+        profilePhoto: user.profilePhoto,
+        assignedWorkLocations: user.assignedWorkLocations,
+        isVerified: user.isVerified,
+        status: user.status,
+        basicSalary: user.basicSalary,
+        bpjsKesehatan: user.bpjsKesehatan,
+        bpjsKetenagakerjaan: user.bpjsKetenagakerjaan,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    const err = error as Error;
+    logger.error({ err, message: err.message }, "getMyProfile error");
+
+    return res.status(500).json({
+      success: false,
+      message: "Gagal ambil profil",
+    });
+  }
+};

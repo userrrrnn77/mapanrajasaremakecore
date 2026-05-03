@@ -86,6 +86,33 @@ export interface IAttendance extends Document {
 /**
  * 🔥 SCHEMA
  */
+
+const GeoPointSchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ["Point"],
+      default: "Point",
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+      validate: {
+        validator: (v: number[]) =>
+          Array.isArray(v) &&
+          v.length === 2 &&
+          v[0] >= -180 &&
+          v[0] <= 180 &&
+          v[1] >= -90 &&
+          v[1] <= 90,
+        message: "Coordinates harus [lng, lat]",
+      },
+    },
+  },
+  { _id: false },
+);
+
 const AttendanceSchema = new mongoose.Schema<IAttendance>(
   {
     user: {
@@ -145,8 +172,8 @@ const AttendanceSchema = new mongoose.Schema<IAttendance>(
       name: String,
       radiusMeter: Number,
       center: {
-        lat: Number,
-        lng: Number,
+        lat: { type: Number },
+        lng: { type: Number },
       },
       shiftType: {
         type: String,
@@ -157,40 +184,19 @@ const AttendanceSchema = new mongoose.Schema<IAttendance>(
     },
 
     photo: {
-      type: {
-        url: {
-          type: String,
-          required: true,
-        },
-        publicId: {
-          type: String,
-          required: true,
-          index: true,
-        },
+      url: {
+        type: String,
+        required: true,
       },
-      required: true,
+      publicId: {
+        type: String,
+        required: true,
+        index: true,
+      },
     },
 
     location: {
-      type: {
-        type: String,
-        enum: ["Point"],
-        default: "Point",
-      },
-      coordinates: {
-        type: [Number],
-        required: true,
-        validate: {
-          validator: (v: number[]) =>
-            Array.isArray(v) &&
-            v.length === 2 &&
-            v[0] >= -180 &&
-            v[0] <= 180 &&
-            v[1] >= -90 &&
-            v[1] <= 90,
-          message: "Coordinates harus [lng, lat]",
-        },
-      },
+      type: GeoPointSchema,
       required: true,
     },
 

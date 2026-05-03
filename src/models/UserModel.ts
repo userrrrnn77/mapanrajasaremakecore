@@ -63,7 +63,6 @@ const UserSchema = new mongoose.Schema<IUser>(
       required: true,
       trim: true,
       lowercase: true,
-      index: true,
     },
 
     password: {

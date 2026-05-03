@@ -43,16 +43,10 @@ interface RegisterBody {
 }
 
 export const register = async (req: Request, res: Response) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     const { username, password, fullname, phone, role, locationCode } =
       req.body as RegisterBody;
 
-    /**
-     * 🔍 BASIC VALIDATION
-     */
     if (!username || !password || !fullname || !phone || !locationCode) {
       return res.status(400).json({
         success: false,
@@ -70,48 +64,44 @@ export const register = async (req: Request, res: Response) => {
     const cleanUsername = username.toLowerCase().trim();
     const cleanPhone = phone.trim();
     const cleanCode = locationCode.trim().toUpperCase().replace(/\s+/g, "_");
+
     let userRole: WorkRole = "cleaning_service";
 
-    const isValidRole = (role: any): role is WorkRole => {
-      return WORK_ROLES.includes(role);
-    };
+    const isValidRole = (r: any): r is WorkRole => WORK_ROLES.includes(r);
 
     if (role) {
       if (!isValidRole(role)) {
-        await session.abortTransaction();
         return res.status(400).json({
           success: false,
           message: "Role tidak valid",
         });
       }
-      userRole = role; // ✅ sekarang aman (sudah WorkRole)
+      userRole = role;
     }
 
     /**
-     * 🔐 CHECK DUPLICATE (PARALLEL)
+     * 🔥 PARALLEL CHECK
      */
     const [existingUser, workLocation] = await Promise.all([
       User.findOne({
         $or: [{ phone: cleanPhone }, { username: cleanUsername }],
-      }).session(session),
+      }),
 
       WorkLocation.findOne({
         code: cleanCode,
         role: userRole,
         isActive: true,
-      }).session(session),
+      }),
     ]);
 
     if (existingUser) {
-      await session.abortTransaction();
       return res.status(409).json({
         success: false,
-        message: "User sudah terdaftar (username/phone)",
+        message: "User sudah terdaftar",
       });
     }
 
     if (!workLocation) {
-      await session.abortTransaction();
       return res.status(404).json({
         success: false,
         message: `Lokasi ${cleanCode} tidak valid untuk role ${userRole}`,
@@ -119,9 +109,9 @@ export const register = async (req: Request, res: Response) => {
     }
 
     /**
-     * 👤 CREATE USER
+     * 🔥 CREATE USER
      */
-    const newUser = new User({
+    const newUser = await User.create({
       username: cleanUsername,
       password,
       fullname,
@@ -132,18 +122,8 @@ export const register = async (req: Request, res: Response) => {
       status: "active",
     });
 
-    await newUser.save({ session });
-
-    /**
-     * 🔑 TOKEN
-     */
     const token = generateToken(newUser._id.toString(), newUser.role);
 
-    await session.commitTransaction();
-
-    /**
-     * 🔥 RESPONSE (SAFE)
-     */
     return res.status(201).json({
       success: true,
       message: "Register berhasil",
@@ -160,8 +140,6 @@ export const register = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    await session.abortTransaction();
-
     const err = error as Error;
     logger.error(`REGISTER ERROR: ${err.message}`);
 
@@ -169,8 +147,6 @@ export const register = async (req: Request, res: Response) => {
       success: false,
       message: "Terjadi kesalahan saat register",
     });
-  } finally {
-    session.endSession();
   }
 };
 
