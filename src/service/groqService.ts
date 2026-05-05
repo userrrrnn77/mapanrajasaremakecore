@@ -13,8 +13,6 @@ export class GroqService {
     try {
       const modelName = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 
-      console.log("DEBUG: Mengirim ke Groq dengan model:", `|${modelName}|`);
-
       const data = (await groqFetch("/chat/completions", {
         method: "POST",
         body: JSON.stringify({
@@ -52,4 +50,3 @@ export class GroqService {
     }
   }
 }
-

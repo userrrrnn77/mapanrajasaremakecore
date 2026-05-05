@@ -45,7 +45,7 @@
     "node": "20.x"
   },
   "scripts": {
-    "dev": "bun --hot testing.ts",
+    "dev": "bun --watch testing.ts",
     "start": "node dist/index.js",
     "build": "tsc",
     "vercel-build": "tsc"

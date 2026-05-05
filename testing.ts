@@ -23,21 +23,19 @@ const getLocalIp = () => {
 const startServer = async () => {
   try {
     console.log("⏳ Menghubungkan ke MongoDB...");
-    await connectDB();
+    await connectDB(); // udah bre anjay
     console.log("✅ MongoDB Terkoneksi!");
 
-    if (process.env.NODE_ENV !== "production") {
-      const localIp = getLocalIp();
+    const localIp = getLocalIp();
 
-      app.listen(PORT as number, "0.0.0.0", () => {
-        console.log(
-          `🚀 Server running in ${process.env.NODE_ENV || "development"} mode`,
-        );
-        console.log(`📍 Local: http://localhost:${PORT}`);
-        console.log(`🌐 Network: http://${localIp}:${PORT}`);
-        console.log("-----------------------------------------");
-      });
-    }
+    app.listen(PORT as number, "0.0.0.0", () => {
+      console.log(
+        `🚀 Server running in ${process.env.NODE_ENV || "development"} mode`,
+      );
+      console.log(`📍 Local: http://localhost:${PORT}`);
+      console.log(`🌐 Network: http://${localIp}:${PORT}`);
+      console.log("-----------------------------------------");
+    });
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("❌ Gagal menyalakan server:", error.message);

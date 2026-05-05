@@ -5,6 +5,8 @@ import { logger } from "../utils/logger.js";
 import { OrchestratorService } from "../service/orchestratorService.js";
 import type { ChatRequest } from "../types/aiTypes.js";
 import { AuthRequest } from "../middlewares/authMiddleware.js";
+import { ChatHistoryModel } from "../models/ChatHistoryModel.js";
+import { MessageModel } from "../models/MessageModel.js";
 
 interface AskAIRequestBody {
   message: string;
@@ -73,6 +75,69 @@ export class ChatController {
         success: false,
         error: "AI lagi error, coba lagi nanti.",
       });
+    }
+  }
+
+  static async getHistory(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user?._id?.toString();
+
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      // Cari semua history milik user, urutkan dari yang terbaru[cite: 25]
+      const history = await ChatHistoryModel.find({ userId })
+        .sort({ updatedAt: -1 })
+        .lean();
+
+      const messages = await MessageModel.find({ userId })
+        .sort({ updatedAt: -1 })
+        .lean();
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          history: history,
+          messages: messages,
+        },
+      });
+    } catch (error) {
+      logger.error({ message: "ChatController.getHistory error", error });
+      return res
+        .status(500)
+        .json({ success: false, error: "Gagal ambil history" });
+    }
+  }
+
+  static async getThreadMessages(req: AuthRequest, res: Response) {
+    try {
+      const { threadId } = req.params;
+      const userId = req.user?._id?.toString();
+
+      if (!threadId) {
+        return res
+          .status(400)
+          .json({ success: false, error: "Thread ID wajib ada" });
+      }
+
+      // Ambil pesan berdasarkan threadId, urutkan dari yang lama ke baru[cite: 27]
+      const messages = await MessageModel.find({ threadId, userId })
+        .sort({ createdAt: 1 })
+        .lean();
+
+      return res.status(200).json({
+        success: true,
+        data: messages,
+      });
+    } catch (error) {
+      logger.error({
+        message: "ChatController.getThreadMessages error",
+        error,
+      });
+      return res
+        .status(500)
+        .json({ success: false, error: "Gagal ambil pesan thread" });
     }
   }
 }

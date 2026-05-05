@@ -131,7 +131,7 @@ router.get("/my-timeline", authMiddleware, getMyTimeline);
 router.get(
   "/",
   authMiddleware,
-  roleMiddleware(["admin"]),
+  // roleMiddleware(["admin"]),
   adminLimiter,
   getAllUsers,
 );

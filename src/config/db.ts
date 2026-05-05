@@ -28,13 +28,15 @@ const connectDB = async () => {
 
   if (!cached.promise) {
     const options = {
-      bufferCommands: false, // lebih baik kena fast error 503 atau 504 bre daripada memory numpuk di ram karena koneksi jelek hahaha
-      serverSelectionTimeoutMS: 5000,
-      maxPoolSize: 5,
+      serverSelectionTimeoutMS: 10000,
+      maxPoolSize: 20,
+      socketTimeoutMS: 30000,
     };
 
     cached.promise = mongoose.connect(MONGO_URI, options).then((conn) => {
       console.log("✅ MongoDB Connected, Bre!");
+      console.log("✅ MongoDB Connected & Ready");
+
       return conn;
     });
   }

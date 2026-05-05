@@ -1,12 +1,10 @@
-import { groq } from "../config/groq.js";
-
 export const groqFetch = async (endpoint: string, options: RequestInit) => {
-  const url = `${process.env.GROQ_URL}${endpoint}`;
+  const url = `https://api.groq.com/openai/v1${endpoint}`;
 
   const response = await fetch(url, {
     ...options,
     headers: {
-      Authorization: `Bearer ${groq}`,
+      Authorization: `Bearer ${process.env.GROQ_API_KEY}`, // masalahnya di sini gw pake groq yang dari config bre jadinya [object object] bukan isian env gw taik
       "Content-Type": "application/json",
       ...options.headers,
     },

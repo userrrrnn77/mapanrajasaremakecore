@@ -99,6 +99,15 @@ const validateThreadHeader = (
 
 router.get("/status", ChatController.getStatus);
 
+router.get("/history", authMiddleware, ChatController.getHistory);
+
+// 2. Ambil isi pesan dari satu thread tertentu
+router.get(
+  "/thread/:threadId",
+  authMiddleware,
+  ChatController.getThreadMessages,
+);
+
 router.post(
   "/ask",
   optionalAuth,

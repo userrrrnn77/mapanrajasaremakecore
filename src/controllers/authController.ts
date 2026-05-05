@@ -164,6 +164,7 @@ export const login = async (req: Request, res: Response) => {
     const user = await User.findOne({ phone })
       .select("+password")
       .populate("assignedWorkLocations");
+      
     if (!user)
       return res
         .status(404)
