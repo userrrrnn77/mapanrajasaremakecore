@@ -45,9 +45,9 @@
     "node": "20.x"
   },
   "scripts": {
-    "dev": "bun --watch testing.ts",
+    "dev": "systemd-run --user --scope -p CPUQuota=40% -p MemoryMax=2G taskset -c 0-2 bun --watch testing.ts",
     "start": "node dist/index.js",
-    "build": "tsc",
+    "build": "systemd-run --user --scope -p CPUQuota=50% -p MemoryMax=3G tsc",
     "vercel-build": "tsc"
   },
   "author": "Rendy Agus Saputra",
