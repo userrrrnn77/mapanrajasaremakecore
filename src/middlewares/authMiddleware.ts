@@ -6,7 +6,7 @@ import User, { IUser } from "../models/UserModel.js";
 import { logger } from "../utils/logger.js";
 import cloudinary from "../config/cloudinary.js";
 
-const rateLimit: any = rateLimitMbut;
+export const rateLimit: any = rateLimitMbut;
 
 /**
  * 🔥 EXTEND EXPRESS REQUEST

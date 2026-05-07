@@ -1,6 +1,5 @@
 import { Router } from "express";
 import type { Request, Response, NextFunction } from "express";
-import rateLimit from "express-rate-limit";
 import { logger } from "../utils/logger.js";
 import {
   createActivity,
@@ -9,6 +8,7 @@ import {
 } from "../controllers/activityController.js";
 import {
   authMiddleware,
+  rateLimit,
   roleMiddleware,
 } from "../middlewares/authMiddleware.js";
 import { checkInValidator } from "../middlewares/attendanceMiddleware.js";
@@ -19,7 +19,7 @@ const router = Router();
 const activityLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
-  handler: (req, res) => {
+  handler: (req: any, res: any) => {
     logger.warn({ ip: req.ip }, "Spam activity terdeteksi");
     res.status(429).json({ success: false, message: "Terlalu banyak request" });
   },
@@ -67,11 +67,6 @@ router.post(
 
 router.get("/me", authMiddleware, getMyHistory);
 
-router.get(
-  "/",
-  authMiddleware,
-  roleMiddleware(["admin"]),
-  getAllActivities,
-);
+router.get("/", authMiddleware, roleMiddleware(["admin"]), getAllActivities);
 
 export default router;
