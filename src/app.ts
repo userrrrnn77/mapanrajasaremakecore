@@ -6,7 +6,7 @@ import express, {
 import mainRoutes from "./routes/_routes.js";
 import morgan from "morgan";
 import cors from "cors";
-import helmet from "helmet";
+// import * as helmet from "helmet";
 import { AuthRequest } from "./middlewares/authMiddleware.js";
 
 const app = express();
@@ -15,7 +15,7 @@ app.set("trust proxy", 1);
 
 app.use(morgan("dev"));
 
-app.use(helmet());
+// app.use(helmet());
 
 app.use(
   cors({
